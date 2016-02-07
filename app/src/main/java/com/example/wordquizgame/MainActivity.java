@@ -77,7 +77,8 @@ public class MainActivity extends AppCompatActivity {
         highScoreButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playGameButton.setVisibility(View.INVISIBLE);
+                Intent i = new Intent(MainActivity.this, HighScoreActivity.class);
+                startActivity(i);
             }
         });
     }

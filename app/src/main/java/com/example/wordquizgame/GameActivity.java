@@ -1,14 +1,19 @@
 package com.example.wordquizgame;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TableLayout;
@@ -227,11 +232,94 @@ public class GameActivity extends AppCompatActivity {
             for (int column = 0; column < 2; column++) {
                 Button guessButton = (Button) inflater.inflate(R.layout.guess_button, tr, false);
                 guessButton.setText(mChoiceWordList.remove(0));
+                guessButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        submitGuess((Button) v);
+                    }
+                });
                 tr.addView(guessButton);
             }
         }
-
     }
+
+    private void submitGuess(Button guessButton) {
+        Log.i(TAG, "You selected " + guessButton.getText().toString());
+
+        mTotalGuesses++;
+
+        String guessWord = guessButton.getText().toString();
+        String answerWord = getWord(mAnswerFileName);
+
+        // ตอบถูก
+        if (guessWord.equals(answerWord)) {
+            mScore++;
+
+            MediaPlayer mp = MediaPlayer.create(this, R.raw.applause);
+            mp.start();
+
+            String msg = guessWord + " ถูกต้องนะคร้าบบ";
+            mAnswerTextView.setText(msg);
+            mAnswerTextView.setTextColor(
+                    ContextCompat.getColor(this, android.R.color.holo_green_dark));
+
+            // ตอบถูก และเล่นครบทุกข้อแล้ว (จบเกม)
+            if (mScore == 3) {
+
+                //saveScore();
+
+                String msgResult = String.format(
+                        "จำนวนครั้งที่ทาย: %d\nเปอร์เซ็นต์ความถูกต้อง: %.1f",
+                        mTotalGuesses,
+                        100 * 3 / (double) mTotalGuesses
+                );
+
+                AlertDialog.Builder dialog = new AlertDialog.Builder(this);
+                dialog.setTitle("สรุปผล");
+                dialog.setMessage(msgResult);
+                dialog.setCancelable(false);
+                dialog.setPositiveButton("เริ่มเกมใหม่", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        startQuiz();
+                    }
+                });
+                dialog.setNegativeButton("กลับหน้าหลัก", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        finish();
+                    }
+                });
+                dialog.show();
+            }
+            // ตอบถูก แต่ยังไม่ครบทุกข้อ (ยังไม่จบเกม)
+            else {
+                mHandler.postDelayed(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                loadNextQuestion();
+                            }
+                        }
+                        , 2000
+                );
+            }
+        }
+        // ตอบผิด
+        else {
+            guessButton.setEnabled(false);
+
+            MediaPlayer mp = MediaPlayer.create(this, R.raw.fail3);
+            mp.start();
+
+            String msg = "ผิดครับ ลองใหม่นะครับ";
+            mAnswerTextView.setText(msg);
+            mAnswerTextView.setTextColor(
+                    ContextCompat.getColor(this, android.R.color.holo_red_dark));
+        }
+    }
+
+
 }
 
 

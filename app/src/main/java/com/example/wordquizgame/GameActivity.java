@@ -188,7 +188,7 @@ public class GameActivity extends AppCompatActivity {
     private void prepareChoiceWords() {
         mChoiceWordList.clear();
         String answerWord = getWord(mAnswerFileName);
-
+        String answerCategory = getCategory(mAnswerFileName);
 /*
         int i = 0;
         Collections.shuffle(mFileNameList);
@@ -204,10 +204,16 @@ public class GameActivity extends AppCompatActivity {
         while (mChoiceWordList.size() < mNumChoices) {
             int randomIndex = mRandom.nextInt(mFileNameList.size());
             String randomWord = getWord(mFileNameList.get(randomIndex));
+            String randomCategory = getCategory(mFileNameList.get(randomIndex));
 
             if (mChoiceWordList.contains(randomWord) == false &&
                     answerWord.equals(randomWord) == false) {
-                mChoiceWordList.add(randomWord);
+
+                // เพิ่มเงื่อนไข: ตัวเลือกต้องเป็นคำศัพท์หมวดเดียวกับคำถามเท่านั้น
+                if (answerCategory.equals(randomCategory)) {
+                    mChoiceWordList.add(randomWord);
+                }
+
             }
         }
 
@@ -222,6 +228,10 @@ public class GameActivity extends AppCompatActivity {
         Log.i(TAG, "************************");
 
         createChoiceButtons();
+    }
+
+    private String getCategory(String fileName) {
+        return fileName.substring(0, fileName.indexOf('-'));
     }
 
     private String getWord(String fileName) {
